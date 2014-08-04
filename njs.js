@@ -1,6 +1,14 @@
 var njs = (function(){
 	var CURRENT_DIR = document.currentScript.src.match(/.*?(?=\/[a-z0-9-_]+\.js)/gi)[0];
 	var JQUERY_VERSION = '1.11.0';
+	var BRANCH_COLORS = [
+		'#00008B' //Dark blue
+		,'#8B0000' // Dark Red
+		,'#008B8B' // Dark Cyan
+		,'#9400D3' // Dark Violet
+		,'#DAA520' // GOLDEN Rod
+		,'#006400' // Dark Green
+	];
 	
 	function addJquery(version, cb){
 		version = version || JQUERY_VERSION;
@@ -31,6 +39,7 @@ var njs = (function(){
 				,children: []
 				,depth: 0
 				,siblingIndex: 0
+				,__color: '#000000'
 			}
 		;
 
@@ -43,10 +52,22 @@ var njs = (function(){
 			numChildren = rand ? pick(range(minChildren,maxChildren)):maxChildren - minChildren;
 
 			for(var i = 0; node.depth < maxDepth && i < numChildren; i++){
+
+				var color;
+
+				if(node.depth === 0) {
+					color = BRANCH_COLORS[i % BRANCH_COLORS.length];
+				} else {
+					color = shadeColor( node.__color, (((node.depth + 1)/maxDepth) * 0.5) );
+				}
+
 				var child = {
 					name: node.name + "" + i
 					,children: []
 					,depth: node.depth + 1
+					,__color: color
+					,parent: node
+
 				};
 
 				node.children.push(child);
@@ -68,12 +89,13 @@ var njs = (function(){
 
 		var levelMap = []
 			,treeStr = ""
+			,cssLst = []
 		;
 
 		traverse(tree, function(node, d){
 			if(!levelMap[d]) levelMap[d] =[];
 			levelMap[d].push(node);
-			node.__id = numToAlpha(((d + 1) * 26) + levelMap[d].length -1);
+			node.__id = numToAlpha(((d) * 26) + levelMap[d].length - 1);
 		});
 
 		function setPosition(node, lastPosition, lastChild, evenSibs){
@@ -82,7 +104,7 @@ var njs = (function(){
 
 			if(children.length === 0){
 				node.__pos = position;
-				return lastChild && !evenSibs? position + 1: position;
+				return position;
 			} else {
 				var evenNumChildren = children.length % 2 === 0;
 				var middleIndex = Math.floor(children.length/2);
@@ -134,24 +156,27 @@ var njs = (function(){
 				, nodeStr
 				, emptyLineStr = ""
 				, labelSize = 3
+
 			;
 
 
-			nodeStr = nodes.reduce(function(prev, node){
+			nodeStr = nodes.reduce(function(prev, node,i){
 				label = cntr(nameFn(node), labelSize);
 				pos = ((Math.floor(node.__pos)) * labelSize);
-				prevLen = prev.length ;
+				prevLen = prev.length - (i*2);
 				padLen = pos - prevLen ;
+				cssLst.push("color:"+node.__color);
 
-				return prev + emptyStr(padLen) + label;
+				return prev + '%c' + emptyStr(padLen) + label;
 			}, "" );
 
 			emptyLineStr = makeStr('\n', numEmptyLines);
 
-			treeStr += nodeStr + '\n' + emptyLineStr;
+			treeStr +=  nodeStr + '\n' + emptyLineStr;
+
 		});
 
-		console.log(treeStr);
+		console.log.apply(console, [treeStr].concat( cssLst));
 
 	};
 
@@ -282,10 +307,19 @@ var njs = (function(){
 	    return c;
 	}
 
-	function pad(a){
-		a = String(a); 
+	function pad(a, n, ch){
+		n = n || 2;
+		ch = ch || '0';
+		
+		a = String(a);
 
-		return a.length < 2 ? "0" + a:a;
+		var p = a; 
+
+		while(p.length < n){
+			p = ch + p;
+		}
+
+		return p;
 	}
 
 	function includeJs(path, cb){
@@ -413,6 +447,38 @@ var njs = (function(){
 		});
 	}
 
+	function uuid() {
+        function s4() {
+            return Math.floor((1 + Math.random()) * 0x10000)
+                .toString(16)
+                .substring(1);
+        }
+
+        return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+            s4() + '-' + s4() + s4() + s4();
+    }
+
+    function shadeColor(color, percent) {   
+        var f = parseInt( color.slice(1) , 16 )
+            ,t = percent < 0 ? 0 : 255
+            ,p = percent < 0 ? percent * -1 : percent
+            
+            ,R = f >> 16
+            ,G = f >> 8 & 0x00FF
+            ,B = f & 0x0000FF
+        ;
+        
+        return "#" + 
+            (   
+                0x1000000 + ( Math.round( (t - R) * p ) + R ) * 
+                0x10000   + ( Math.round( (t - G) * p ) + G ) *
+                0x100     + ( Math.round( (t - B) * p ) + B )       
+            )
+            .toString(16)
+            .slice(1)
+        ;
+    }
+
 	return {
 		jquery: function(version){
 			return addJquery(version);
@@ -441,8 +507,8 @@ var njs = (function(){
 		,merge: function(a,b){
 			return merge(a,b);
 		}
-		,pad: function(a){
-			return pad(a);
+		,pad: function(a, n, ch){
+			return pad(a, n, ch);
 		}
 		,buildMap: function(list, property, inMap){
 			return buildMap(list, property, inMap);
@@ -485,6 +551,12 @@ var njs = (function(){
 		}
 		,reduceMap: function(list, propertyFn, inMap){
 			return reduceMap(list, propertyFn, inMap);
+		}
+		,uuid: function(){
+			return uuid();
+		}
+		,shadeColor: function(color, percent){
+			return shadeColor(color, percent);
 		}
 	};
 })();

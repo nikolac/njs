@@ -25,6 +25,7 @@ var njstests = [
 					console.log(njs.makeStr('\t', d) + n.name);
 				});
 			} catch(e){
+				console.error(e);
 				passed = false;
 				msg = e.toString();
 			}
@@ -49,6 +50,7 @@ var njstests = [
 				});
 				
 			} catch(e){
+				console.error(e);
 				passed = false;
 				msg = e.toString();
 			}
@@ -78,6 +80,7 @@ var njstests = [
 				});
 				
 			} catch(e){
+				console.error(e);
 				passed = false;
 				msg = e.toString();
 			}
@@ -107,6 +110,7 @@ var njstests = [
 				});
 				
 			} catch(e){
+				console.error(e);
 				passed = false;
 				msg = e.toString();
 			}
@@ -136,6 +140,37 @@ var njstests = [
 				});
 				
 			} catch(e){
+				console.error(e);
+				passed = false;
+				msg = e.toString();
+			}
+
+			return {
+				passed: passed
+				,msg: msg
+			};
+		}
+	}
+	,{
+		name: "odd kids wide shallow"
+		,group: 'generate tree'
+		,run: function(){
+			var msg = ""
+				,passed = true
+			;
+
+			try{
+				var t = njs.generateTree(2, 0, 6, false);
+				njs.printTree(t, function(n){
+					return n.__pos;
+				});
+
+				njs.printTree(t, function(n){
+					return n.__id;
+				});
+				
+			} catch(e){
+				console.error(e);
 				passed = false;
 				msg = e.toString();
 			}
@@ -784,7 +819,7 @@ var njstests = [
 function runAllTests(){
 	var results = [];
 	njstests.forEach(function(t,i){
-		var testName = (i + 1 )+ " " + t.group + ": " +t.name;
+		var testName = njs.pad(i + 1 )+ " " + t.group + ": " +t.name;
 		
 		if(i == njstests.length - 1){
 			console.group(testName);
