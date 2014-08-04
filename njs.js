@@ -82,7 +82,7 @@ var njs = (function(){
 
 			if(children.length === 0){
 				node.__pos = position;
-				return lastChild && !evenSibs ? position + 1:node.__pos;
+				return lastChild && !evenSibs? position + 1: position;
 			} else {
 				var evenNumChildren = children.length % 2 === 0;
 				var middleIndex = Math.floor(children.length/2);
@@ -103,25 +103,24 @@ var njs = (function(){
 			}
 		}
 
-		function cntr(str, l){
+		function cntr(str, l, ch){
 			str = String(str);
+			ch = ch || ' ';
 
 			str = str.length < l - 2 ? str.slice(0, l - 2):str;
 			var diff = l - str.length;
 			var half = Math.floor(diff/2);
-			var s = emptyStr(half);
+			var s = makeStr(ch,half);
 
 			for(var i = 0; i < str.length; i++){
 				s += str.charAt(i);
 			}
 
-			s +=  emptyStr(half);
-
-			while(str.length < l){
-				str += " ";
+			while(s.length < l){
+				s += ch;
 			}
 
-			return  str;
+			return  s;
 		}
 
 		setPosition(tree);
@@ -140,9 +139,9 @@ var njs = (function(){
 
 			nodeStr = nodes.reduce(function(prev, node){
 				label = cntr(nameFn(node), labelSize);
-				pos = (Math.floor(node.__pos) + 1) * labelSize;
-				prevLen = prev.length;
-				padLen = pos - prevLen - label.length;
+				pos = ((Math.floor(node.__pos)) * labelSize);
+				prevLen = prev.length ;
+				padLen = pos - prevLen ;
 
 				return prev + emptyStr(padLen) + label;
 			}, "" );
@@ -305,6 +304,8 @@ var njs = (function(){
 			,len
 		;
 
+		str = String(str);
+
 		if (str.length === 0) return h;
 
 		for (i = 0, len = str.length; i < len; i++) {
@@ -315,12 +316,13 @@ var njs = (function(){
 		return h;
 	}
 
-	function buildMap(list, property, inMap){
+	function buildMap(list, propertyFn, inMap){
+		propertyFn = propertyFn || function(){return;};
 		var mp = inMap || {};
 
 		for(var i = 0; i < list.length; i++){
 			var item = list[i];
-			var key = item[property];
+			var key = propertyFn(item);
 
 			mp[key] = item;
 		}
@@ -328,9 +330,30 @@ var njs = (function(){
 		return mp;
 	}
 
+	function reduceMap(list, propertyFn, inMap){
+		propertyFn = propertyFn || function(){return;};
+		var mp = inMap || {};
+
+		for(var i = 0; i < list.length; i++){
+			var item = list[i];
+			var key = propertyFn(item);
+
+			if(!mp[key]) mp[key] = [];
+
+			mp[key].push(item);
+		}
+
+		return mp;
+	}
+
 	function emptyStr(len){
-		if(isNaN(len) || len < 1) return "";
 		return makeStr(' ', len);
+	}
+
+	function makeStr(ch, len){
+		if(isNaN(len) || len < 1) return "";
+		if(len < 2) return ch;
+		return new Array(len + 1).join(ch);
 	}
 
 	function alpha(n){
@@ -339,11 +362,6 @@ var njs = (function(){
 
 	function alphaBack(a){
 		return a.charCodeAt(0) - 97;
-	}
-
-	function makeStr(ch, len){
-		if(isNaN(len) || len < 1) return "";
-		return new Array(len).join(ch ||' ');
 	}
 
 	function numToAlpha(n){
@@ -370,10 +388,7 @@ var njs = (function(){
 			return prev += alpha(num);
 		}, "");
 	}
-
-	/*
-		Currently broken!
-	*/
+	
 	function alphaToNum(str){
 		var len = str.length
 			,base = 26
@@ -385,8 +400,7 @@ var njs = (function(){
 		for(var i = len - 1, j = 0; i >= 0; i--, j++){
 			ch = str.charAt(i);
 			num = alphaBack(ch);
-			console.log("CHAR", ch,"NUM", num,  "I", i, "J",j, "MATH POW base, j", Math.pow(base, j), "num * math pow base j", num * (Math.pow(base, j)));
-
+			
 			total += num * (Math.pow(base, j));
 		}
 
@@ -451,6 +465,9 @@ var njs = (function(){
 		,alpha: function(n){
 			return alpha(n);
 		}
+		,alphaBack: function(ch){
+			return alphaBack(ch);
+		}
 		,numToAlpha: function(n){
 			return numToAlpha(n);
 		}
@@ -463,7 +480,12 @@ var njs = (function(){
 		,test: function(){
 			return test();
 		}
-
+		,makeStr: function(a,b){
+			return makeStr(a,b);
+		}
+		,reduceMap: function(list, propertyFn, inMap){
+			return reduceMap(list, propertyFn, inMap);
+		}
 	};
 })();
 
