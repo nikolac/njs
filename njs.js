@@ -1,15 +1,17 @@
 var njs = (function(){
-	function addJquery(version){
-		version = version || '1.11.0';
+	var CURRENT_DIR = document.currentScript.src.match(/.*?(?=\/[a-z0-9-_]+\.js)/gi)[0];
+	var JQUERY_VERSION = '1.11.0';
+	
+	function addJquery(version, cb){
+		version = version || JQUERY_VERSION;
 		
-		includeJs("https://ajax.googleapis.com/ajax/libs/jquery/"+version+"/jquery.min.js");
+		includeJs("https://ajax.googleapis.com/ajax/libs/jquery/"+version+"/jquery.min.js", cb);
 	}
 
 	var traverse = function(root, modFn, depth, parentId, childCnt){
-		modFn = modFn || function(){};
 		depth = depth || 0;
 
-		modFn(root, depth, parentId, childCnt);
+		if(modFn) modFn(root, depth, parentId, childCnt);
 
 		for(var i = 0; root.children && root.children.length && i < root.children.length; i++ ){
 			var child = root.children[i];
@@ -62,7 +64,7 @@ var njs = (function(){
 
 	var printTree = function(tree, nameFn, childrenFn){
 		childrenFn = childrenFn || function(n){return n.children;};
-		nameFn = nameFn || function(n){return n.__id;};
+		nameFn = nameFn || function(n){return n.__pos + " " + n.__id ;};
 
 		var levelMap = []
 			,treeStr = ""
@@ -74,19 +76,19 @@ var njs = (function(){
 			node.__id = numToAlpha(((d + 1) * 26) + levelMap[d].length -1);
 		});
 
-		function setPosition(node, lastPosition, lastChild){
+		function setPosition(node, lastPosition, lastChild, evenSibs){
 			var position = lastPosition || 0;
 			var children = childrenFn(node);
 
 			if(children.length === 0){
 				node.__pos = position;
-				return node.__pos;
+				return lastChild && !evenSibs ? position + 1:node.__pos;
 			} else {
 				var evenNumChildren = children.length % 2 === 0;
 				var middleIndex = Math.floor(children.length/2);
 				
 				children.forEach(function(child, i){
-					position = setPosition(child, position, i == children.length - 1) + 1;
+					position = setPosition(child, position, i == children.length - 1, evenNumChildren) + 1;
 
 					if(i == middleIndex - 1 && evenNumChildren){
 						node.__pos = position;
@@ -97,7 +99,7 @@ var njs = (function(){
 					}
 				});
 
-				return children[children.length - 1].__pos;
+				return position - 1;
 			}
 		}
 
@@ -153,8 +155,6 @@ var njs = (function(){
 		console.log(treeStr);
 
 	};
-
-
 
 	var CountMap = function() {
 	    var map = {};
@@ -393,6 +393,12 @@ var njs = (function(){
 		return total;
 	}
 
+	function test(){
+		includeJs(CURRENT_DIR + "/njs-testcases.js", function(){
+			runAllTests();
+		});
+	}
+
 	return {
 		jquery: function(version){
 			return addJquery(version);
@@ -453,6 +459,9 @@ var njs = (function(){
 		}
 		,range: function(min,max){
 			return range(min,max);
+		}
+		,test: function(){
+			return test();
 		}
 
 	};
