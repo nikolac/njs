@@ -35,7 +35,7 @@ var njs = (function(){
 
 		var numChildren
 			,tree = {
-				name: 'root'
+				name: '0'
 				,children: []
 				,depth: 0
 				,siblingIndex: 0
@@ -67,7 +67,6 @@ var njs = (function(){
 					,depth: node.depth + 1
 					,__color: color
 					,parent: node
-
 				};
 
 				node.children.push(child);
@@ -85,7 +84,7 @@ var njs = (function(){
 
 	var printTree = function(tree, nameFn, childrenFn){
 		childrenFn = childrenFn || function(n){return n.children;};
-		nameFn = nameFn || function(n){return n.__pos + " " + n.__id ;};
+		nameFn =  nameFn || function(n){return n.name ;};
 
 		var levelMap = []
 			,treeStr = ""
@@ -96,54 +95,37 @@ var njs = (function(){
 		traverse(tree, function(node, d){
 			if(!levelMap[d]) levelMap[d] =[];
 			levelMap[d].push(node);
-			node.__id = numToAlpha(((d) * 26) + levelMap[d].length - 1)+'8';
+			node.__id = numToAlpha(((node.depth) * 26) + levelMap[node.depth].length - 1);
+			node.__label = ' ' +nameFn(node) +' ';
 		});
 
 		function setPosition(node, lastPosition){
-			var position = lastPosition || 0;
+			lastPosition = lastPosition || 0;
+			
 			var children = childrenFn(node);
+			var fullLabelLength = node.__label.length;
 
 			if(children.length === 0){
-				node.__pos = position;
-				return position;
+				node.__pos = lastPosition + fullLabelLength;
+				return lastPosition + fullLabelLength;
 			} else {
 				var evenNumChildren = children.length % 2 === 0;
 				var middleIndex = Math.floor(children.length/2);
 				
 				children.forEach(function(child, i){
-					position = setPosition(child, position) + 1;
+					lastPosition = setPosition(child, lastPosition);
 
 					if(i == middleIndex - 1 && evenNumChildren){
-						node.__pos = position;
-						position++;
+						node.__pos = lastPosition + fullLabelLength  ;
+						lastPosition += fullLabelLength;
 
 					} else if(i == middleIndex && !evenNumChildren){
 						node.__pos = child.__pos;
 					}
 				});
 
-				return position - 1;
+				return lastPosition;
 			}
-		}
-
-		function cntr(str, l, ch){
-			str = String(str);
-			ch = ch || ' ';
-
-			str = str.length < l - 2 ? str.slice(0, l - 2):str;
-			var diff = l - str.length;
-			var half = Math.floor(diff/2);
-			var s = makeStr(ch,half);
-
-			for(var i = 0; i < str.length; i++){
-				s += str.charAt(i);
-			}
-
-			while(s.length < l){
-				s += ch;
-			}
-
-			return  s;
 		}
 
 		setPosition(tree);
@@ -151,30 +133,18 @@ var njs = (function(){
 		levelMap.reverse();
 
 		levelMap.forEach(function(nodes){
-			var label
-				, padLen
-				, prevLen
-				, pos
-				, nodeStr
-				, labelSize = 5
-				, maxLen = 0
-				, newLineStr = ""
-				, css = []
+			var nodeStr
+				,css = []
 
 			;
 
 			nodeStr = nodes.reduce(function(prev, node,i){
-				label = String(cntr(nameFn(node), labelSize));
-				pos = ((Math.floor(node.__pos)) * labelSize);
-				prevLen = prev.length - (i*2);
-				padLen = pos - prevLen ;
+				var label = ' ' +String(nameFn(node)) + ' ';
+				var prevLen = prev.length - (i*2);
+				var padding = emptyStr(node.__pos - prevLen - Math.floor(node.__label.length/2));
 				css.push("color:"+node.__color);
 
-				newLineStr =  prev  + emptyStr(padLen)+ '%c' + label;
-				node.__actPos = prevLen + padLen + 2;
-				maxLen = node.__actPos;
-
-				return newLineStr;
+				return prev  + padding + '%c' + label;
 
 			}, "");
 
@@ -191,12 +161,12 @@ var njs = (function(){
 
 
 			for(var i = 0;d > 0 && i < numEmptyLines; i++){
-				var arr = new Array(nodeLevelLength + 1).join(' ').split("");
+				var arr = new Array(nodeLevelLength).join(' ').split("");
 				var c = [];
 
 				nodes.forEach(function(n){
-					var parentPos = n.parent.__actPos ;
-					var nodePos = n.__actPos;
+					var parentPos = n.parent.__pos  ;
+					var nodePos = n.__pos;
 
 					var diff = parentPos - nodePos;
 					var depthRatio = ( (i )  / (numEmptyLines - 1) ) || 0;
@@ -209,8 +179,8 @@ var njs = (function(){
 						ch = '.';
 					}
 
-					if(arr[n.__actPos + adjustment] == ' '){
-						arr[n.__actPos + adjustment] = '%c' + ch;
+					if(arr[nodePos + adjustment] == ' '){
+						arr[nodePos + adjustment] = '%c' + ch;
 						c.push("color:"+n.__color);
 					}
 					

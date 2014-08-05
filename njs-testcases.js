@@ -71,12 +71,32 @@ var njstests = [
 
 			try{
 				var t = njs.generateTree(3, 0, 2, false);
-				njs.printTree(t, function(n){
-					return n.__pos;
-				});
+				njs.printTree(t);
+				
+			} catch(e){
+				console.error(e);
+				passed = false;
+				msg = e.toString();
+			}
 
+			return {
+				passed: passed
+				,msg: msg
+			};
+		}
+	}
+	,{
+		name: "long name even"
+		,group: 'generate tree'
+		,run: function(){
+			var msg = ""
+				,passed = true
+			;
+
+			try{
+				var t = njs.generateTree(3, 0, 2, false);
 				njs.printTree(t, function(n){
-					return n.__id;
+					return njs.numToAlpha(njs.hash(n.name));
 				});
 				
 			} catch(e){
@@ -101,13 +121,7 @@ var njstests = [
 
 			try{
 				var t = njs.generateTree(3, 0, 3, false);
-				njs.printTree(t, function(n){
-					return njs.pad(n.__pos, 3, '0');
-				});
-
-				njs.printTree(t, function(n){
-					return n.__id;
-				});
+				njs.printTree(t);
 				
 			} catch(e){
 				console.error(e);
@@ -131,13 +145,7 @@ var njstests = [
 
 			try{
 				var t = njs.generateTree(4, 0, 3, false);
-				njs.printTree(t, function(n){
-					return n.__pos;
-				});
-
-				njs.printTree(t, function(n){
-					return njs.pad(n.__id);
-				});
+				njs.printTree(t);
 				
 			} catch(e){
 				console.error(e);
@@ -161,13 +169,7 @@ var njstests = [
 
 			try{
 				var t = njs.generateTree(5, 0, 2, false);
-				njs.printTree(t, function(n){
-					return n.__pos;
-				});
-
-				njs.printTree(t, function(n){
-					return njs.pad(n.__id);
-				});
+				njs.printTree(t);
 				
 			} catch(e){
 				console.error(e);
@@ -192,13 +194,7 @@ var njstests = [
 			try{
 				var t = njs.generateTree(2, 0, 5, false);
 
-				njs.printTree(t, function(n){
-					return n.__pos;
-				});
-
-				njs.printTree(t, function(n){
-					return njs.pad(n.__id);
-				});
+				njs.printTree(t);
 				
 			} catch(e){
 				console.error(e);
@@ -222,13 +218,7 @@ var njstests = [
 
 			try{
 				var t = njs.generateTree(2, 0, 6, false);
-				njs.printTree(t, function(n){
-					return n.__pos;
-				});
-
-				njs.printTree(t, function(n){
-					return n.__id;
-				});
+				njs.printTree(t);
 				
 			} catch(e){
 				console.error(e);
@@ -252,13 +242,7 @@ var njstests = [
 
 			try{
 				var t = njs.generateTree(3, 1, 5, true);
-				njs.printTree(t, function(n){
-					return n.__pos;
-				});
-
-				njs.printTree(t, function(n){
-					return n.__id;
-				});
+				njs.printTree(t);
 				
 			} catch(e){
 				passed = false;
