@@ -16,15 +16,15 @@ var njs = (function(){
 		includeJs("https://ajax.googleapis.com/ajax/libs/jquery/"+version+"/jquery.min.js", cb);
 	}
 
-	var traverse = function(root, modFn, depth, parentId, childCnt){
+	var traverse = function(root, modFn, depth, parent, childCnt){
 		depth = depth || 0;
 
-		if(modFn) modFn(root, depth, parentId, childCnt);
+		if(modFn) modFn(root, depth, parent, childCnt);
 
 		for(var i = 0; root.children && root.children.length && i < root.children.length; i++ ){
 			var child = root.children[i];
 
-			traverse(child, modFn, depth + 1, root.id, i);
+			traverse(child, modFn, depth + 1, root, i);
 		}
 	};
 
@@ -39,7 +39,6 @@ var njs = (function(){
 				,children: []
 				,depth: 0
 				,siblingIndex: 0
-				,__color: '#000000'
 			}
 		;
 
@@ -53,19 +52,10 @@ var njs = (function(){
 
 			for(var i = 0; node.depth < maxDepth && i < numChildren; i++){
 
-				var color;
-
-				if(node.depth === 0) {
-					color = BRANCH_COLORS[i % BRANCH_COLORS.length];
-				} else {
-					color = shadeColor( node.__color, (((node.depth + 1)/maxDepth) * 0.2) );
-				}
-
 				var child = {
 					name: node.name + "" + i
 					,children: []
 					,depth: node.depth + 1
-					,__color: color
 					,parent: node
 				};
 
@@ -92,11 +82,23 @@ var njs = (function(){
 			,nodeLevels = []
 		;
 
-		traverse(tree, function(node, d){
-			if(!levelMap[d]) levelMap[d] =[];
-			levelMap[d].push(node);
+		traverse(tree, function(node, d, parent, childCnt){
+			if(!levelMap[d]){
+				levelMap[d] =[node];
+			} else {
+				levelMap[d].push(node);
+			}
+
+			if(d === 0){
+				node.__color = "#000000";
+			}else if(d === 1) {
+				node.__color = BRANCH_COLORS[childCnt % BRANCH_COLORS.length];
+			} else {
+				node.__color = parent.__color;
+			}
+
 			node.__id = numToAlpha(((node.depth) * 26) + levelMap[node.depth].length - 1);
-			node.__label = ' ' +nameFn(node) +' ';
+			node.__label = ' ' +nameFn(node) ;
 		});
 
 		function setPosition(node, lastPosition){
@@ -135,16 +137,14 @@ var njs = (function(){
 		levelMap.forEach(function(nodes){
 			var nodeStr
 				,css = []
-
 			;
 
 			nodeStr = nodes.reduce(function(prev, node,i){
-				var label = ' ' +String(nameFn(node)) + ' ';
 				var prevLen = prev.length - (i*2);
 				var padding = emptyStr(node.__pos - prevLen - Math.floor(node.__label.length/2));
 				css.push("color:"+node.__color);
 
-				return prev  + padding + '%c' + label;
+				return prev  + padding + '%c' + node.__label;
 
 			}, "");
 
