@@ -276,7 +276,7 @@ var njstests = [
 				if(cmap.get('nik') !== 2){
 					throw 'expected 2 but got ' + cmap.get('nik');
 				}
-				console.log('asserting bob == 0')
+				console.log('asserting bob == 0');
 				if(cmap.get('bob') !== 0){
 					throw 'expected 0 but got ' + cmap.get('bob');
 				}
@@ -520,7 +520,7 @@ var njstests = [
 					,{name: 'm235i', type:'car' }
 				];
 
-				var mp = njs.buildMap(l, function(o){return o.name});
+				var mp = njs.buildMap(l, function(o){return o.name;});
 
 				console.log(l, "to map", mp);
 			} catch(e){
@@ -554,7 +554,7 @@ var njstests = [
 					,{name: 'm5', type:'car' }
 				];
 
-				var mp = njs.reduceMap(l, function(o){return o.type});
+				var mp = njs.reduceMap(l, function(o){return o.type;});
 
 				console.log(l, "to reduce map", mp);
 			} catch(e){
@@ -665,10 +665,10 @@ var njstests = [
 				if(e !== v) throw 'expected ' + e + ' actual ' + v;
 
 
-			} catch(e){
-				console.error(e);
+			} catch(er){
+				console.error(er);
 				passed = false;
-				msg = e.toString();
+				msg = er.toString();
 			}
 
 			return {
@@ -705,10 +705,10 @@ var njstests = [
 				if(e !== v) throw 'expected ' + e + ' actual ' + v;
 
 
-			} catch(e){
-				console.error(e);
+			} catch(er){
+				console.error(er);
 				passed = false;
-				msg = e.toString();
+				msg = er.toString();
 			}
 
 			return {
@@ -776,10 +776,10 @@ var njstests = [
 
 				if(e !== v) throw 'expected ' + e + ' actual ' + v;
 
-			} catch(e){
-				console.error(e);
+			} catch(er){
+				console.error(er);
 				passed = false;
-				msg = e.toString();
+				msg = er.toString();
 			}
 
 			return {
@@ -847,10 +847,32 @@ var njstests = [
 
 				if(e !== v) throw 'expected ' + e + ' actual ' + v;
 
-			} catch(e){
-				console.error(e);
+			} catch(er){
+				console.error(er);
 				passed = false;
-				msg = e.toString();
+				msg = er.toString();
+			}
+
+			return {
+				passed: passed
+				,msg: msg
+			};
+		}
+	}
+	,{
+		name: "functional"
+		,group: 'uuid'
+		,run: function(){
+			var msg = ""
+				,passed = true
+			;
+
+			try{
+				console.log(njs.uuid());
+			} catch(er){
+				console.error(er);
+				passed = false;
+				msg = er.toString();
 			}
 
 			return {
@@ -871,8 +893,7 @@ function runAllTests(){
 		} else {
 			console.groupCollapsed(testName);
 		}
-		
-		
+
 		var res = t.run();
 		
 		results.push({

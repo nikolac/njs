@@ -71,7 +71,6 @@ var njs = (function(){
 		return tree;
 	};
 
-
 	var printTree = function(tree, nameFn, childrenFn){
 		childrenFn = childrenFn || function(n){return n.children;};
 		nameFn =  nameFn || function(n){return n.name ;};
@@ -111,20 +110,14 @@ var njs = (function(){
 				node.__pos = lastPosition + fullLabelLength;
 				return lastPosition + fullLabelLength;
 			} else {
-				var evenNumChildren = children.length % 2 === 0;
-				var middleIndex = Math.floor(children.length/2);
-				
-				children.forEach(function(child, i){
+				children.forEach(function(child){
 					lastPosition = setPosition(child, lastPosition);
-
-					if(i == middleIndex - 1 && evenNumChildren){
-						node.__pos = lastPosition + fullLabelLength  ;
-						lastPosition += fullLabelLength;
-
-					} else if(i == middleIndex && !evenNumChildren){
-						node.__pos = child.__pos;
-					}
 				});
+				
+				var rightPos = children[0].__pos;
+				var leftPos = children[children.length - 1].__pos;
+
+				node.__pos = leftPos + Math.floor((rightPos - leftPos)/2) ;
 
 				return lastPosition;
 			}
@@ -153,7 +146,9 @@ var njs = (function(){
 
 		levelMap.forEach(function(nodes,dep){
 			var d = levelMap.length - 1 - dep;
-			var numEmptyLines = Math.floor(Math.pow((levelMap.length - d  + 1), 2)) ;
+			var up = (d - 1) > 0 ? d  - 1: 0;
+			//var numEmptyLines = Math.floor( Math.sqrt(3) * ((levelMap[up][levelMap[up].length - 1].__pos - levelMap[up][0].__pos)/5));
+			var numEmptyLines = 5;
 			var nodeLevel = nodeLevels[dep][0];
 			var css = nodeLevels[dep][1];
 			var nodeLevelLength = nodeLevel.length;
@@ -169,7 +164,7 @@ var njs = (function(){
 					var nodePos = n.__pos;
 
 					var diff = parentPos - nodePos;
-					var depthRatio = ( (i )  / (numEmptyLines - 1) ) || 0;
+					var depthRatio = ( (i )  / (numEmptyLines ) ) || 0;
 					var adjustment = Math.round(depthRatio * diff);
 					var ch = '.';
 
@@ -194,9 +189,6 @@ var njs = (function(){
 
 			treeStr =   nd + '\n' + treeStr;
 		});
-
-		console.log()
-
 		
 		console.log.apply(console, [treeStr].concat( cssLst));
 
