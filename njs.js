@@ -79,6 +79,10 @@ var njs = (function(){
 			,treeStr = ""
 			,cssLst = []
 			,nodeLevels = []
+			,VERT = '\u2502'//'\u23B9'//
+			,HORZ = '\u2500'
+			,LEFT = '\u2572'//'\\'////'\u29F9'//
+			,RIGHT = '\u2571'//'/'////'\u29F8'//
 		;
 
 		traverse(tree, function(node, d, parent, childCnt){
@@ -152,7 +156,6 @@ var njs = (function(){
 			var nd = nodeLevel;
 			var numEmptyLines = 0;
 			var parentNodes = dep < levelMap.length - 1 ? levelMap[dep + 1] : [];
-
 			var maxChildDist = 0;
 
 			parentNodes.forEach(function(node){
@@ -166,33 +169,62 @@ var njs = (function(){
 				}
 			});
 
+
 			numEmptyLines = Math.floor(maxChildDist/2) || 1;
 
-			console.log(d, dep, maxChildDist, numEmptyLines);
-
-
-
-			for(var i = 0;d > 0 && i < numEmptyLines; i++){
+			for(var i = 2;d > 0 && i < numEmptyLines + 1; i++){
 				var arr = new Array(nodeLevelLength).join(' ').split("");
 				var c = [];
 
+
 				nodes.forEach(function(n){
-					var parentPos = n.parent.__pos  ;
-					var nodePos = n.__pos;
+					var parentX = n.parent.__pos
+						,nodeX = n.__pos
 
-					var diff = parentPos - nodePos;
-					var depthRatio =  i  / numEmptyLines  || 0;
-					var adjustment = Math.round(depthRatio * diff);
-					var ch = '|';
+						,parentY = numEmptyLines
+						,nodeY = 0
+					
+						,xDistFromParentOverall = nodeX - parentX
+						,yDistFromParentOverall = nodeY - parentY
 
-					if(diff > 0){
-						ch = '/';
-					} else if(diff < 0){
-						ch = '\\';
+						,depthRatio =  i  / yDistFromParentOverall
+						,prevDepthRatio = (i-1) / yDistFromParentOverall
+
+					
+						,nodeXDelta = xDistFromParentOverall * depthRatio
+						,prevNodeXDelta = xDistFromParentOverall * prevDepthRatio
+						
+						,nodeYDelta = i
+						,prevNodeYDelta = i - 1
+
+						,relNodeX = nodeX + nodeXDelta
+						,prevRelNodeX = nodeX + prevNodeXDelta
+
+						,roundRelNodeX = Math.round(relNodeX)
+						,roundPrevRelNodeX = Math.round(prevRelNodeX)
+						
+						,relNodeY = nodeY + nodeYDelta
+						,prevRelNodeY = nodeY + prevNodeYDelta
+
+						,angle = Math.atan2(1, -1 * (roundPrevRelNodeX- roundRelNodeX) )*180/Math.PI
+
+						,ch = VERT
+					;
+
+					if(angle <= 112.5 && angle > 67.5 ){
+						ch = VERT
+					} else if(angle <= 67.5 && angle > 22.5){
+						ch = RIGHT
+					} else if(angle <= 157.5 && angle > 112.5){
+						ch = LEFT;
+					} else {
+						ch = HORZ;
 					}
+					//console.log("d", d, "numEMpty", numEmptyLines,"i", i,"n", n.__label, n.__pos,"p", n.parent.__label,n.parent.__pos,"relNodeX", relNodeX, "roundRelNodeX", roundRelNodeX, "roundRelPrevNodeX",roundPrevRelNodeX, "angle",angle);
 
-					if(arr[nodePos + adjustment] == ' '){
-						arr[nodePos + adjustment] = '%c' + ch;
+
+					if(arr[roundPrevRelNodeX] == ' '){
+						arr[roundPrevRelNodeX] = '%c' + ch;
 						c.push("color:"+n.__color);
 					}
 					
