@@ -58,7 +58,7 @@ var njs = (function(){
 				if(node.depth === 0) {
 					color = BRANCH_COLORS[i % BRANCH_COLORS.length];
 				} else {
-					color = shadeColor( node.__color, (((node.depth + 1)/maxDepth) * 0.5) );
+					color = shadeColor( node.__color, (((node.depth + 1)/maxDepth) * 0.2) );
 				}
 
 				var child = {
@@ -90,15 +90,16 @@ var njs = (function(){
 		var levelMap = []
 			,treeStr = ""
 			,cssLst = []
+			,nodeLevels = []
 		;
 
 		traverse(tree, function(node, d){
 			if(!levelMap[d]) levelMap[d] =[];
 			levelMap[d].push(node);
-			node.__id = numToAlpha(((d) * 26) + levelMap[d].length - 1);
+			node.__id = numToAlpha(((d) * 26) + levelMap[d].length - 1)+'8';
 		});
 
-		function setPosition(node, lastPosition, lastChild, evenSibs){
+		function setPosition(node, lastPosition){
 			var position = lastPosition || 0;
 			var children = childrenFn(node);
 
@@ -110,7 +111,7 @@ var njs = (function(){
 				var middleIndex = Math.floor(children.length/2);
 				
 				children.forEach(function(child, i){
-					position = setPosition(child, position, i == children.length - 1, evenNumChildren) + 1;
+					position = setPosition(child, position) + 1;
 
 					if(i == middleIndex - 1 && evenNumChildren){
 						node.__pos = position;
@@ -147,35 +148,86 @@ var njs = (function(){
 
 		setPosition(tree);
 
-		levelMap.forEach(function(nodes, d){
+		levelMap.reverse();
+
+		levelMap.forEach(function(nodes){
 			var label
 				, padLen
 				, prevLen
 				, pos
-				, numEmptyLines = Math.floor(Math.pow((levelMap.length - d ), 2)/2)
 				, nodeStr
-				, emptyLineStr = ""
-				, labelSize = 3
+				, labelSize = 5
+				, maxLen = 0
+				, newLineStr = ""
+				, css = []
 
 			;
 
-
 			nodeStr = nodes.reduce(function(prev, node,i){
-				label = cntr(nameFn(node), labelSize);
+				label = String(cntr(nameFn(node), labelSize));
 				pos = ((Math.floor(node.__pos)) * labelSize);
 				prevLen = prev.length - (i*2);
 				padLen = pos - prevLen ;
-				cssLst.push("color:"+node.__color);
+				css.push("color:"+node.__color);
 
-				return prev + '%c' + emptyStr(padLen) + label;
-			}, "" );
+				newLineStr =  prev  + emptyStr(padLen)+ '%c' + label;
+				node.__actPos = prevLen + padLen + 2;
+				maxLen = node.__actPos;
 
-			emptyLineStr = makeStr('\n', numEmptyLines);
+				return newLineStr;
 
-			treeStr +=  nodeStr + '\n' + emptyLineStr;
+			}, "");
 
+			nodeLevels.push([nodeStr, css]);
 		});
 
+		levelMap.forEach(function(nodes,dep){
+			var d = levelMap.length - 1 - dep;
+			var numEmptyLines = Math.floor(Math.pow((levelMap.length - d  + 1), 2)) ;
+			var nodeLevel = nodeLevels[dep][0];
+			var css = nodeLevels[dep][1];
+			var nodeLevelLength = nodeLevel.length;
+			var nd = nodeLevel;
+
+
+			for(var i = 0;d > 0 && i < numEmptyLines; i++){
+				var arr = new Array(nodeLevelLength + 1).join(' ').split("");
+				var c = [];
+
+				nodes.forEach(function(n){
+					var parentPos = n.parent.__actPos ;
+					var nodePos = n.__actPos;
+
+					var diff = parentPos - nodePos;
+					var depthRatio = ( (i )  / (numEmptyLines - 1) ) || 0;
+					var adjustment = Math.round(depthRatio * diff);
+					var ch = '.';
+
+					if(adjustment > 0){
+						ch = '.';
+					} else if(adjustment < 0){
+						ch = '.';
+					}
+
+					if(arr[n.__actPos + adjustment] == ' '){
+						arr[n.__actPos + adjustment] = '%c' + ch;
+						c.push("color:"+n.__color);
+					}
+					
+					
+				});
+				css = c.concat(css);
+				nd =  arr.join("") + '\n' + nd ;
+			}
+
+			cssLst = css.concat(cssLst);
+
+			treeStr =   nd + '\n' + treeStr;
+		});
+
+		console.log()
+
+		
 		console.log.apply(console, [treeStr].concat( cssLst));
 
 	};

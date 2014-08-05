@@ -102,7 +102,7 @@ var njstests = [
 			try{
 				var t = njs.generateTree(3, 0, 3, false);
 				njs.printTree(t, function(n){
-					return njs.pad(n.__pos);
+					return njs.pad(n.__pos, 3, '0');
 				});
 
 				njs.printTree(t, function(n){
@@ -136,7 +136,37 @@ var njstests = [
 				});
 
 				njs.printTree(t, function(n){
-					return n.__id;
+					return njs.pad(n.__id);
+				});
+				
+			} catch(e){
+				console.error(e);
+				passed = false;
+				msg = e.toString();
+			}
+
+			return {
+				passed: passed
+				,msg: msg
+			};
+		}
+	}
+	,{
+		name: "even kids deep"
+		,group: 'generate tree'
+		,run: function(){
+			var msg = ""
+				,passed = true
+			;
+
+			try{
+				var t = njs.generateTree(5, 0, 2, false);
+				njs.printTree(t, function(n){
+					return n.__pos;
+				});
+
+				njs.printTree(t, function(n){
+					return njs.pad(n.__id);
 				});
 				
 			} catch(e){
@@ -153,6 +183,37 @@ var njstests = [
 	}
 	,{
 		name: "odd kids wide shallow"
+		,group: 'generate tree'
+		,run: function(){
+			var msg = ""
+				,passed = true
+			;
+
+			try{
+				var t = njs.generateTree(2, 0, 5, false);
+
+				njs.printTree(t, function(n){
+					return n.__pos;
+				});
+
+				njs.printTree(t, function(n){
+					return njs.pad(n.__id);
+				});
+				
+			} catch(e){
+				console.error(e);
+				passed = false;
+				msg = e.toString();
+			}
+
+			return {
+				passed: passed
+				,msg: msg
+			};
+		}
+	}
+	,{
+		name: "even kids wide shallow"
 		,group: 'generate tree'
 		,run: function(){
 			var msg = ""
@@ -190,7 +251,7 @@ var njstests = [
 			;
 
 			try{
-				var t = njs.generateTree(3, 2, 4, true);
+				var t = njs.generateTree(3, 1, 5, true);
 				njs.printTree(t, function(n){
 					return n.__pos;
 				});
