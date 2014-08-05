@@ -146,13 +146,30 @@ var njs = (function(){
 
 		levelMap.forEach(function(nodes,dep){
 			var d = levelMap.length - 1 - dep;
-			var up = (d - 1) > 0 ? d  - 1: 0;
-			//var numEmptyLines = Math.floor( Math.sqrt(3) * ((levelMap[up][levelMap[up].length - 1].__pos - levelMap[up][0].__pos)/5));
-			var numEmptyLines = 5;
 			var nodeLevel = nodeLevels[dep][0];
 			var css = nodeLevels[dep][1];
 			var nodeLevelLength = nodeLevel.length;
 			var nd = nodeLevel;
+			var numEmptyLines = 0;
+			var parentNodes = dep < levelMap.length - 1 ? levelMap[dep + 1] : [];
+
+			var maxChildDist = 0;
+
+			parentNodes.forEach(function(node){
+				var dist = 0;
+				if(node.children && node.children.length > 0){
+					dist = node.children[node.children.length - 1].__pos - node.children[0].__pos;
+
+					if(dist > maxChildDist){
+						maxChildDist = dist;
+					}
+				}
+			});
+
+			numEmptyLines = Math.floor(maxChildDist/2) || 1;
+
+			console.log(d, dep, maxChildDist, numEmptyLines);
+
 
 
 			for(var i = 0;d > 0 && i < numEmptyLines; i++){
@@ -164,14 +181,14 @@ var njs = (function(){
 					var nodePos = n.__pos;
 
 					var diff = parentPos - nodePos;
-					var depthRatio = ( (i )  / (numEmptyLines ) ) || 0;
+					var depthRatio =  i  / numEmptyLines  || 0;
 					var adjustment = Math.round(depthRatio * diff);
-					var ch = '.';
+					var ch = '|';
 
-					if(adjustment > 0){
-						ch = '.';
-					} else if(adjustment < 0){
-						ch = '.';
+					if(diff > 0){
+						ch = '/';
+					} else if(diff < 0){
+						ch = '\\';
 					}
 
 					if(arr[nodePos + adjustment] == ' '){
