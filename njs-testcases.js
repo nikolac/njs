@@ -881,9 +881,137 @@ var njstests = [
 			};
 		}
 	}
+	,{
+		name: "functional"
+		,group: 'pick weighted'
+		,run: function(){
+			var msg = ""
+				,passed = true
+			;
+
+			var lst = ['nik', 'bob', 'tim', 'rob', 'jim', 'timmy'];
+			var weight = { 0: 0.3 };
+			var numTimes = 1000;
+
+			try{
+				var cm = njs.getCountMap();
+				var res = [];
+
+				for(var i = 0; i < numTimes; i++){
+					cm.add(njs.pick(lst,weight));
+				}
+
+				var d = cm.getData();
+
+				for(i in d){
+					res.push([i, d[i], d[i]/1000, 1/lst.length]);
+				}
+
+				console.table(res);
+			} catch(er){
+				console.error(er);
+				passed = false;
+				msg = er.toString();
+			}
+
+			return {
+				passed: passed
+				,msg: msg
+			};
+		}
+	}
+	,{
+		name: "no weight argument"
+		,group: 'pick weighted'
+		,run: function(){
+			var msg = ""
+				,passed = true
+			;
+
+			var lst = ['nik', 'bob', 'tim', 'rob', 'jim', 'timmy'];
+			var weight;
+
+			try{
+				
+				njs.pick(lst,weight);
+				
+			} catch(er){
+				console.error(er);
+				passed = false;
+				msg = er.toString();
+			}
+
+			return {
+				passed: passed
+				,msg: msg
+			};
+		}
+	}
+	,{
+		name: "functional"
+		,group: 'randInRange'
+		,run: function(){
+			var msg = ""
+				,passed = true
+			;
+
+			var min = 1;
+			var max = 10;
+
+			try{
+				
+				for(var i = 0; i < 1000; i++){
+					var r = njs.randInRange(min, max);
+
+					if(r > max) throw r + " is greater than max of " + max;
+					if(r < min) throw r + " is less than min of " + min;
+				}
+			} catch(er){
+				console.error(er);
+				passed = false;
+				msg = er.toString();
+			}
+
+			return {
+				passed: passed
+				,msg: msg
+			};
+		}
+	}
+	,{
+		name: "same min max"
+		,group: 'randInRange'
+		,run: function(){
+			var msg = ""
+				,passed = true
+			;
+
+			var min = 1;
+			var max = 1;
+
+			try{
+				
+				for(var i = 0; i < 10; i++){
+					var r = njs.randInRange(min, max);
+
+					if(r > max) throw r + " is greater than max of " + max;
+					if(r < min) throw r + " is less than min of " + min;
+				}
+			} catch(er){
+				console.error(er);
+				passed = false;
+				msg = er.toString();
+			}
+
+			return {
+				passed: passed
+				,msg: msg
+			};
+		}
+	}
 ];
 
-function runAllTests(){
+window.runAllTests = function runAllTests(){
 	var results = [];
 	njstests.forEach(function(t,i){
 		var testName = njs.pad(i + 1 )+ " " + t.group + ": " +t.name;
@@ -908,5 +1036,5 @@ function runAllTests(){
 	});
 
 	console.table(results);
-}
+};
 
